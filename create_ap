@@ -72,6 +72,7 @@ usage() {
     echo "                          You can get them with --list-running"
     echo "  --mkconfig <conf_file>  Store configs in conf_file"
     echo "  --config <conf_file>    Load configs from conf_file"
+    echo "  --jetson                Nvidia Jetson only: set op_mode=2 to enable SSID broadcast."
     echo
     echo "Non-Bridging Options:"
     echo "  --no-dns                Disable dnsmasq DNS server"
@@ -630,6 +631,7 @@ NEW_MACADDR=
 DAEMONIZE=0
 NO_HAVEGED=0
 USE_PSK=0
+JETSON=0
 
 HOSTAPD_DEBUG_ARGS=
 REDIRECT_TO_LOCALHOST=0
@@ -637,7 +639,7 @@ REDIRECT_TO_LOCALHOST=0
 CONFIG_OPTS=(CHANNEL GATEWAY WPA_VERSION ETC_HOSTS DHCP_DNS NO_DNS NO_DNSMASQ HIDDEN MAC_FILTER MAC_FILTER_ACCEPT ISOLATE_CLIENTS
              SHARE_METHOD IEEE80211N IEEE80211AC HT_CAPAB VHT_CAPAB DRIVER NO_VIRT COUNTRY FREQ_BAND
              NEW_MACADDR DAEMONIZE NO_HAVEGED WIFI_IFACE INTERNET_IFACE
-             SSID PASSPHRASE USE_PSK)
+             SSID PASSPHRASE USE_PSK JETSON)
 
 FIX_UNMANAGED=0
 LIST_RUNNING=0
@@ -786,6 +788,10 @@ _cleanup() {
             ip link set dev ${WIFI_IFACE} address ${OLD_MACADDR}
         fi
         networkmanager_rm_unmanaged_if_needed ${WIFI_IFACE} ${OLD_MACADDR}
+    fi
+
+    if [[ $JETSON -eq 1 ]]; then
+        clear_op_mode_ap
     fi
 
     mutex_unlock
@@ -1011,6 +1017,15 @@ read_config() {
     done < "$LOAD_CONFIG"
 }
 
+# Turn on SSID broadcast for Jetson
+set_op_mode_ap() {
+    echo 2 > /sys/module/bcmdhd/parameters/op_mode
+}
+
+clear_op_mode_ap() {
+    echo 0 > /sys/module/bcmdhd/parameters/op_mode
+}
+
 
 ARGS=( "$@" )
 
@@ -1028,7 +1043,7 @@ for ((i=0; i<$#; i++)); do
     fi
 done
 
-GETOPT_ARGS=$(getopt -o hc:w:g:de:nm: -l "help","hidden","hostapd-debug:","redirect-to-localhost","mac-filter","mac-filter-accept:","isolate-clients","ieee80211n","ieee80211ac","ht_capab:","vht_capab:","driver:","no-virt","fix-unmanaged","country:","freq-band:","mac:","dhcp-dns:","daemon","stop:","list","list-running","list-clients:","version","psk","no-haveged","no-dns","no-dnsmasq","mkconfig:","config:" -n "$PROGNAME" -- "$@")
+GETOPT_ARGS=$(getopt -o hc:w:g:de:nm: -l "help","hidden","hostapd-debug:","redirect-to-localhost","mac-filter","mac-filter-accept:","isolate-clients","ieee80211n","ieee80211ac","ht_capab:","vht_capab:","driver:","no-virt","fix-unmanaged","country:","freq-band:","mac:","dhcp-dns:","daemon","stop:","list","list-running","list-clients:","version","psk","no-haveged","no-dns","no-dnsmasq","mkconfig:","config:","jetson:" -n "$PROGNAME" -- "$@")
 [[ $? -ne 0 ]] && exit 1
 eval set -- "$GETOPT_ARGS"
 
@@ -1207,6 +1222,10 @@ while :; do
         --config)
             shift
             shift
+            ;;
+        --jetson)
+            shift
+            JETSON=1
             ;;
         --)
             shift
@@ -1502,6 +1521,12 @@ if [[ -e /proc/sys/net/bridge/bridge-nf-call-iptables ]]; then
     cp -n /proc/sys/net/bridge/bridge-nf-call-iptables $COMMON_CONFDIR
 fi
 mutex_unlock
+
+# enable SSID broadcast for Jetson
+if [[ $JETSON -eq 1 ]]; then
+    echo "Nvidia Jetson: setting op_mode=2 to enable SSID broadcast"
+    set_op_mode_ap
+fi
 
 if [[ "$SHARE_METHOD" == "bridge" ]]; then
     if is_bridge_interface $INTERNET_IFACE; then
