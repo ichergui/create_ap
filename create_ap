@@ -1019,11 +1019,15 @@ read_config() {
 
 # Turn on SSID broadcast for Jetson
 set_op_mode_ap() {
-    echo 2 > /sys/module/bcmdhd/parameters/op_mode
+    if [ -d "/sys/module/bcmdhd/parameters" ]; then
+        echo 2 > /sys/module/bcmdhd/parameters/op_mode
+    fi
 }
 
 clear_op_mode_ap() {
-    echo 0 > /sys/module/bcmdhd/parameters/op_mode
+    if [ -d "/sys/module/bcmdhd/parameters" ]; then
+        echo 0 > /sys/module/bcmdhd/parameters/op_mode
+    fi
 }
 
 
