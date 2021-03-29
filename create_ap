@@ -1047,9 +1047,29 @@ for ((i=0; i<$#; i++)); do
     fi
 done
 
-GETOPT_ARGS=$(getopt -o hc:w:g:de:nm: -l "help","hidden","hostapd-debug:","redirect-to-localhost","mac-filter","mac-filter-accept:","isolate-clients","ieee80211n","ieee80211ac","ht_capab:","vht_capab:","driver:","no-virt","fix-unmanaged","country:","freq-band:","mac:","dhcp-dns:","daemon","stop:","list","list-running","list-clients:","version","psk","no-haveged","no-dns","no-dnsmasq","mkconfig:","config:","jetson:" -n "$PROGNAME" -- "$@")
+
+ARGUMENT_LIST=(
+    "help" "hidden" "hostapd-debug:" "redirect-to-localhost" \
+    "mac-filter" "mac-filter-accept:" "isolate-clients" "ieee80211n" \
+    "ieee80211ac" "ht_capab:" "vht_capab:" "driver:" "no-virt" \
+    "fix-unmanaged" "country:" "freq-band:" "mac:" "dhcp-dns:" \
+    "daemon" "stop:" "list" "list-running" "list-clients:" "version" \
+    "psk" "no-haveged" "no-dns" "no-dnsmasq" "mkconfig:" "config:" \
+    "jetson:"
+)
+
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s," "${ARGUMENT_LIST[@]}")" \
+    --name "$PROGNAME" \
+    --options "hc:w:g:de:nm:" \
+    -- "$@"
+)
+
 [[ $? -ne 0 ]] && exit 1
-eval set -- "$GETOPT_ARGS"
+
+eval set -- "$opts"
 
 while :; do
     case "$1" in
