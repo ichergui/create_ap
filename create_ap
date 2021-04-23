@@ -767,10 +767,10 @@ _cleanup() {
         if [[ $NO_DNS -eq 0 ]]; then
             iptables -w -D INPUT -p tcp -m tcp --dport $DNS_PORT -j ACCEPT
             iptables -w -D INPUT -p udp -m udp --dport $DNS_PORT -j ACCEPT
-            iptables -w -t nat -D PREROUTING -s ${GATEWAY%.*}.0/24 -d ${GATEWAY} \
-                -p tcp -m tcp --dport 53 -j REDIRECT --to-ports $DNS_PORT
-            iptables -w -t nat -D PREROUTING -s ${GATEWAY%.*}.0/24 -d ${GATEWAY} \
-                -p udp -m udp --dport 53 -j REDIRECT --to-ports $DNS_PORT
+            # iptables -w -t nat -D PREROUTING -s ${GATEWAY%.*}.0/24 -d ${GATEWAY} \
+            #    -p tcp -m tcp --dport 53 -j REDIRECT --to-ports $DNS_PORT
+            # iptables -w -t nat -D PREROUTING -s ${GATEWAY%.*}.0/24 -d ${GATEWAY} \
+            #    -p udp -m udp --dport 53 -j REDIRECT --to-ports $DNS_PORT
         fi
         iptables -w -D INPUT -p udp -m udp --dport 67 -j ACCEPT
     fi
@@ -1862,10 +1862,10 @@ if [[ "$SHARE_METHOD" != "bridge" ]]; then
         DNS_PORT=5353
         iptables -w -I INPUT -p tcp -m tcp --dport $DNS_PORT -j ACCEPT || die
         iptables -w -I INPUT -p udp -m udp --dport $DNS_PORT -j ACCEPT || die
-        iptables -w -t nat -I PREROUTING -s ${GATEWAY%.*}.0/24 -d ${GATEWAY} \
-            -p tcp -m tcp --dport 53 -j REDIRECT --to-ports $DNS_PORT || die
-        iptables -w -t nat -I PREROUTING -s ${GATEWAY%.*}.0/24 -d ${GATEWAY} \
-            -p udp -m udp --dport 53 -j REDIRECT --to-ports $DNS_PORT || die
+        # iptables -w -t nat -I PREROUTING -s ${GATEWAY%.*}.0/24 -d ${GATEWAY} \
+        #    -p tcp -m tcp --dport 53 -j REDIRECT --to-ports $DNS_PORT || die
+        # iptables -w -t nat -I PREROUTING -s ${GATEWAY%.*}.0/24 -d ${GATEWAY} \
+        #    -p udp -m udp --dport 53 -j REDIRECT --to-ports $DNS_PORT || die
     else
         DNS_PORT=0
     fi
