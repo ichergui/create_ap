@@ -269,8 +269,10 @@ get_phy_device() {
 
 get_adapter_info() {
     local PHY
-    PHY=$(get_phy_device "$1")
-    [[ $? -ne 0 ]] && return 1
+    # TODO: Fix get_phy_device function
+    # PHY=$(get_phy_device "$1")
+    # [[ $? -ne 0 ]] && return 1
+    PHY="phy0"
     iw phy $PHY info
 }
 
